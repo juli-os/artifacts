@@ -246,7 +246,7 @@ const islandJson = (v: Record<string, string>): string =>
  * （wf_9658ce9225e0，2026-10-05 用户裁定：结果 artifact 本来就该是 html）。
  * 兜底身份显性化：页眉注明 + 数据岛 generated_by=engine-fallback。 */
 const fallbackResultHtml = (workflowId: string, sourceName: string, text: string): string =>
-  '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">' +
+  '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1">' +
   `<title>Result artifact · ${escapeHtml(workflowId)}</title>` +
   '<style>:root{color-scheme:light dark}body{margin:0;padding:24px;background:#f7f7f8;color:#1c1c1e;' +
@@ -259,7 +259,7 @@ const fallbackResultHtml = (workflowId: string, sourceName: string, text: string
   '<header><h1>Result artifact · engine fallback view</h1>' +
   `<p class="note">The agent did not deliver a primary HTML artifact (single-HTML contract), so the engine wrapped the contents of ${escapeHtml(sourceName)} into a renderable view.</p></header>` +
   `<pre>${escapeHtml(text)}</pre>` +
-  '</main><script type="application/json" id="makro-meta">' +
+  '</main><script type="application/json" id="julios-meta">' +
   islandJson({ workflow_id: workflowId, generated_by: 'engine-fallback', source_file: sourceName }) +
   '</script></body></html>';
 
