@@ -9,9 +9,11 @@ export { assertSigV4PresignShape } from './platform/artifacts/store.ts';
 export {
   createArtifactLedger, guessMime, parseEnvelope, isDeliverableRef,
   type ArtifactLedger, type ArtifactRow, type ArtifactRole,
-  type DeliverableDecl, type SweepEnvelope, type DeliverableRef, type SweepResult,
+  type DeliverableDecl, type SweepEnvelope, type DeliverableRef,
 } from './platform/artifacts/ledger.ts';
-export { sweepCaseInbox } from './platform/artifacts/ledger.ts';
+// sweepCaseInbox (+ its zh-CN fallback result page) is juli-engine specific:
+// kept in this repo's source, intentionally NOT part of the public npm surface
+// for v0.1. It ships once the locale pass lands.
 export { ok, err, toResult, type Result } from './platform/shared/result.ts';
 export { rfc3339, systemClock, randomIds, type Clock, type IdGen } from './platform/shared/clock.ts';
 export { asRecord, safeParse, type JsonRecord, type JsonValue } from './platform/shared/json.ts';

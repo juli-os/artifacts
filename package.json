@@ -3,18 +3,40 @@
   "version": "0.1.0",
   "description": "juli-os L2 layer: hash-registered deliverables with provenance. Zero npm dependencies — disk backend included, S3 presign hand-rolled.",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
+  "bin": {
+    "juli-artifacts": "./dist/juli-artifacts.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=22.5.0"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild bin/juli-artifacts.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/juli-artifacts.js && chmod +x dist/juli-artifacts.js && python3 scripts/postbuild.py",
     "test": "node --test \"test/*.test.ts\"",
-    "demo": "node bin/juli-artifacts.ts demo /tmp/demo-artifacts"
+    "smoke:dist": "node --input-type=module -e \"import('./dist/index.js').then(async m => { const { join } = await import('node:path'); const { mkdtempSync } = await import('node:fs'); const { tmpdir } = await import('node:os'); const dir = mkdtempSync(join(tmpdir(), 'peel-d2-')); const b = m.createDiskBackend(join(dir, 's')); const { DatabaseSync } = await import('node:sqlite'); const l = m.createArtifactLedger(new DatabaseSync(join(dir, 'a.db')), b); const row = await l.putAndRegister({workflowId:'wf',role:'body',name:'x.md',bytes:Buffer.from('hi')}); if (!l.get(row.id)) process.exit(1); console.log('DIST SMOKE OK'); })\"",
+    "prepublishOnly": "npm run build"
   },
-  "bin": {
-    "juli-artifacts": "./bin/juli-artifacts.ts"
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "license": "Apache-2.0"
 }
