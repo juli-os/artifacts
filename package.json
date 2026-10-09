@@ -1,5 +1,5 @@
 {
-  "name": "@juli-os/artifacts",
+  "name": "@juli-labs/artifacts",
   "version": "0.1.0",
   "description": "juli-os L2 layer: hash-registered deliverables with provenance. Zero npm dependencies — disk backend included, S3 presign hand-rolled.",
   "type": "module",
