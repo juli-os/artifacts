@@ -246,7 +246,7 @@ export const createDualBackend = (primary: ArtifactBackend, remote: ArtifactBack
     const local = await primary.put(key, bytes);
     if (!local.ok) return local;
     const up = await remote.put(key, bytes);
-    if (!up.ok) console.error(`[artifacts] remote put failed (disk 已落,外链暂不可用): ${up.error.message}`);
+    if (!up.ok) console.error(`[artifacts] remote put failed (disk copy landed, remote link unavailable): ${up.error.message}`);
     return local;
   },
   async get(key) {
@@ -258,7 +258,7 @@ export const createDualBackend = (primary: ArtifactBackend, remote: ArtifactBack
     // 远端删除失败不再静默:先记日志,并把远端错误并入返回值——否则 purge
     // 路由只看到 primary 结果,照样返回 purged=N 而字节永久残留 OSS。
     const up = await remote.delete(key);
-    if (!up.ok) console.error(`[artifacts] remote delete failed (字节可能残留远端): ${up.error.message}`);
+    if (!up.ok) console.error(`[artifacts] remote delete failed (bytes may remain on remote): ${up.error.message}`);
     const local = await primary.delete(key);
     if (!local.ok) return local;
     return up.ok ? local : err(new Error(`remote delete failed: ${up.error.message}`));

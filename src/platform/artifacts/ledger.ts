@@ -248,7 +248,7 @@ const islandJson = (v: Record<string, string>): string =>
 const fallbackResultHtml = (workflowId: string, sourceName: string, text: string): string =>
   '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-  `<title>结果工件 · ${escapeHtml(workflowId)}</title>` +
+  `<title>Result artifact · ${escapeHtml(workflowId)}</title>` +
   '<style>:root{color-scheme:light dark}body{margin:0;padding:24px;background:#f7f7f8;color:#1c1c1e;' +
   'font:15px/1.75 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}' +
   'main{max-width:760px;margin:0 auto}header{border-bottom:1px solid #d9d9de;padding-bottom:12px;margin-bottom:20px}' +
@@ -256,8 +256,8 @@ const fallbackResultHtml = (workflowId: string, sourceName: string, text: string
   'pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #e3e3e8;border-radius:10px;padding:18px;margin:0}' +
   '@media(prefers-color-scheme:dark){body{background:#161618;color:#f2f2f7}pre{background:#232326;border-color:#323236}}</style>' +
   '</head><body><main>' +
-  '<header><h1>结果工件 · 引擎兜底视图</h1>' +
-  `<p class="note">agent 未交付 HTML 主工件（makro-artifacts 单一 HTML 契约），引擎已将 ${escapeHtml(sourceName)} 内容包成可渲染视图。</p></header>` +
+  '<header><h1>Result artifact · engine fallback view</h1>' +
+  `<p class="note">The agent did not deliver a primary HTML artifact (single-HTML contract), so the engine wrapped the contents of ${escapeHtml(sourceName)} into a renderable view.</p></header>` +
   `<pre>${escapeHtml(text)}</pre>` +
   '</main><script type="application/json" id="makro-meta">' +
   islandJson({ workflow_id: workflowId, generated_by: 'engine-fallback', source_file: sourceName }) +
@@ -310,7 +310,7 @@ export const sweepCaseInbox = async (deps: {
         }
       }
     } catch (e) {
-      deps.log?.(`case-inbox manifest 解析失败: ${String(e)}`);
+      deps.log?.(`case-inbox manifest parse failed: ${String(e)}`);
     }
     break; // 只认第一份命中的申报单名
   }
@@ -318,7 +318,7 @@ export const sweepCaseInbox = async (deps: {
   const warnings: string[] = [];
   const bodyFiles = decls.filter((d) => d.role === 'body');
   if (bodyFiles.length > 1) {
-    warnings.push(`申报了 ${bodyFiles.length} 个 body（${bodyFiles.map((d) => d.file).join(', ')}）——全部降级 report，发送步将拒发`);
+    warnings.push(`declared ${bodyFiles.length} body file(s) (${bodyFiles.map((d) => d.file).join(', ')}) — all demoted to report; the send step will refuse to send`);
   }
   const declOf = new Map(decls.map((d) => [d.file, d]));
   const entries: SweepResult['entries'][number][] = [];
@@ -340,7 +340,7 @@ export const sweepCaseInbox = async (deps: {
         });
         await unlink(p);
       } catch (e) {
-        deps.log?.(`case-inbox manifest 收编失败: ${String(e)}`);
+        deps.log?.(`case-inbox manifest sweep failed: ${String(e)}`);
       }
       continue;
     }
@@ -356,7 +356,7 @@ export const sweepCaseInbox = async (deps: {
           viewRole = claimed as ViewRole;
           if (viewRole === 'body' && bodyFiles.length > 1) viewRole = 'report';
         } else if (claimed !== '') {
-          warnings.push(`${name}: 未知 role "${claimed}"，按 report 处理`);
+          warnings.push(`${name}: unknown role "${claimed}", treated as report`);
         }
       }
       const row = await deps.ledger.putAndRegister({
@@ -397,10 +397,10 @@ export const sweepCaseInbox = async (deps: {
     });
     entries.push({
       id: row.id, name: 'result.html', view_role: 'report', sha256: row.sha256,
-      bytes: row.bytes, summary: `引擎兜底：${src.name} 的 HTML 视图`,
+      bytes: row.bytes, summary: `engine fallback: HTML view of ${src.name}`,
     });
-    warnings.push(`无 HTML 主交付物（makro-artifacts 单一 HTML 契约）——引擎已将 ${src.name} 包成兜底 result.html`);
-    deps.log?.(`case-inbox HTML 兜底：${deps.workflowId} 合成 result.html（源 ${src.name}）`);
+    warnings.push(`no primary HTML deliverable (single-HTML contract) — the engine wrapped ${src.name} into a fallback result.html`);
+    deps.log?.(`case-inbox HTML fallback: synthesized result.html for ${deps.workflowId} (source ${src.name})`);
   }
   return { count: entries.length, entries, envelope, warnings, has_manifest: hasManifest };
 };

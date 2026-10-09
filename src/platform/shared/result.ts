@@ -10,7 +10,7 @@ export const ok = <T>(value: T): Result<T, never> => ({ ok: true, value });
 export const err = <E>(error: E): Result<never, E> => ({ ok: false, error });
 
 /** 把 Promise 变成 Result——async 端口的统一收口。 */
-export const toResult = async <T>(p: Promise<T>, message = '操作失败'): Promise<Result<T, Error>> => {
+export const toResult = async <T>(p: Promise<T>, message = 'operation failed'): Promise<Result<T, Error>> => {
   try {
     return ok(await p);
   } catch (e) {
