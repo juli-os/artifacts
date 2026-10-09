@@ -1,4 +1,4 @@
-# @juli-labs/artifacts — L2 Artifacts Layer (peel validation slice)
+# @juli-os/artifacts — L2 Artifacts Layer (peel validation slice)
 
 The L2 layer of the juli-os ladder: **hash-registered deliverables with provenance**. Content stays schema-free; the registration ledger is the only structure. Zero npm dependencies — the disk backend works out of the box, and S3-compatible presign is hand-rolled (no SDK).
 
@@ -36,7 +36,7 @@ node bin/juli-artifacts.ts verify /tmp/demo-artifacts   # recompute hashes vs re
 Or from code:
 
 ```ts
-import { createDiskBackend, createArtifactLedger } from '@juli-labs/artifacts';
+import { createDiskBackend, createArtifactLedger } from '@juli-os/artifacts';
 import { DatabaseSync } from 'node:sqlite';
 
 const backend = createDiskBackend('./store');
