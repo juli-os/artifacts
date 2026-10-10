@@ -1,5 +1,5 @@
-// 工件字节侧（对应 Go internal/infra/storage）：Backend 端口 + disk/S3 双实现。
-// S3 presign 用 AWS SigV4 手签（零 SDK 依赖，R2/OSS/minio 兼容 path-style）。
+// Artifact byte side (counterpart of Go internal/infra/storage): Backend port + disk/S3 implementations.
+// S3 presign uses hand-rolled AWS SigV4 signing (zero SDK dependency; R2/OSS/minio-compatible path-style).
 
 import { createHash, createHmac } from 'node:crypto';
 import { mkdir, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promises';
@@ -12,14 +12,15 @@ export interface ArtifactBackend {
   get(key: string): Promise<Result<Buffer, Error>>;
   delete(key: string): Promise<Result<void, Error>>;
   list(prefix: string): Promise<readonly string[]>;
-  /** 生成可访问 URL：disk = 本地 API 路径；S3 = presigned GET。 */
+  /** Produce an accessible URL: disk = local API path; S3 = presigned GET. */
   url(key: string, ttlSec?: number): Promise<Result<string, Error>>;
 }
 
-// ---- Disk 后端 ------------------------------------------------------------------
+// ---- Disk backend ------------------------------------------------------------------
 
-/** containment：解析后的路径必须落在 rootDir 内，穿越键（../、绝对路径指外）
- * 一律拒绝——key 来自账本/HTTP 参数，绝不能当文件系统信任输入。 */
+/** Containment: the resolved path must stay inside rootDir; traversal keys (../,
+ * absolute paths pointing outside) are always rejected — keys come from the ledger/HTTP
+ * params and must never be trusted as filesystem input. */
 const containedPath = (rootDir: string, key: string): { path: string } | { error: Error } => {
   const root = resolve(rootDir);
   const p = resolve(join(rootDir, key));
@@ -69,7 +70,7 @@ export const createDiskBackend = (rootDir: string): ArtifactBackend => ({
   async url(key) { return ok(`/api/artifacts/content/${encodeURIComponent(key)}`); },
 });
 
-// ---- S3 兼容后端（SigV4 presign）---------------------------------------------------
+// ---- S3-compatible backend (SigV4 presign) ---------------------------------------------------
 
 export interface S3Opts {
   readonly endpoint: string;
@@ -78,30 +79,33 @@ export interface S3Opts {
   readonly accessKeyId: string;
   readonly secretAccessKey: string;
   readonly pathStyle?: boolean;
-  /** 公网分享域(如 share.juliasia.cn,CNAME 指向桶):仅对 OSS V1 出链改写——
-   * V1 签名只覆盖资源路径不覆盖域名,改写后链仍有效;SigV4 签 host,改写即废,
-   * 配了也忽略。空 = 不改写出端点原域。 */
+  /** Public share host (e.g. share.juliasia.cn, a CNAME to the bucket): outbound links
+   * are rewritten only for OSS V1 — the V1 signature covers just the resource path, not
+   * the domain, so a rewritten link stays valid; SigV4 signs the host, so rewriting
+   * breaks it and this setting is ignored there. Empty = no rewriting; serve the endpoint's own domain. */
   readonly publicHost?: string;
-  /** 测试注入点:预签时钟(缺省系统时钟)——签名已知向量(known-answer)测试的前提。 */
+  /** Test injection point: presign clock (defaults to the system clock) — prerequisite for known-answer signature tests. */
   readonly now?: () => Date;
 }
 
 const hmac = (key: Buffer | string, data: string): Buffer => createHmac('sha256', key).update(data).digest();
 const shaHex = (data: string | Buffer): string => createHash('sha256').update(data).digest('hex');
 
-/** key 的 URL 编码:逐段 encodeURIComponent(保留 /)——key 来自文件名
- * (case-inbox readdir,agent/用户可控),可含 ?、#、空格、字面 %;裸拼会被
- * 当 URL 结构截断,并与签名串失配(SignatureDoesNotMatch/404)。 */
+/** URL-encode a key: per-segment encodeURIComponent (keeps /) — keys come from file
+ * names (case-inbox readdir, agent/user-controlled) and may contain ?, #, spaces, or a
+ * literal %; splicing them in raw gets cut at URL structure and mismatches the string
+ * to sign (SignatureDoesNotMatch/404). */
 const encodeKeyPath = (key: string): string =>
   key.split('/').map(encodeURIComponent).join('/');
 
-/** S3/OSS 错误体瘦身:只提取 <Code>/<Message>(错误 XML 含 AK ID、内部端点,
- * 不整段入日志);非 XML 时掩码 accessKeyId 后截断。 */
+/** Slim down S3/OSS error bodies: extract only <Code>/<Message> (the error XML contains
+ * AK IDs and internal endpoints — never log it whole); for non-XML bodies, mask the
+ * accessKeyId and truncate. */
 const sanitizeErrorBody = (body: string, accessKeyId: string): string => {
   const code = /<Code>([^<]+)<\/Code>/.exec(body)?.[1];
   const msg = /<Message>([^<]+)<\/Message>/.exec(body)?.[1];
   if (code !== undefined || msg !== undefined) return [code, msg].filter((x) => x !== undefined).join(': ');
-  // accessKeyId 为空串时 split('') 会按字符退化掩码——用必不出现的 \u0000 兜底。
+  // An empty-string accessKeyId would make split('') degrade to per-character masking — fall back to \u0000, which never occurs.
   return body.split(accessKeyId || '\u0000').join('***AK***').slice(0, 200);
 };
 
@@ -132,25 +136,29 @@ const presignUrl = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE',
   return `https://${host}${canonicalUri}?${query.toString()}&X-Amz-Signature=${signature}`;
 };
 
-// ---- OSS 原生 V1 presign ----------------------------------------------------------
-// 阿里云 OSS 不认 AWS SigV4 query 鉴权（实测恒 400 AuthorizationQueryParametersError，
-// 报错话术误导性地指向日期格式）——.aliyuncs.com 端点必须走 V1：签名串
-// "VERB\n\n\nExpires\n/bucket/key"，URL 用 virtual-host 路径 /key。真 S3/R2/MinIO 仍走 SigV4。
+// ---- OSS native V1 presign ----------------------------------------------------------
+// Alibaba Cloud OSS rejects AWS SigV4 query auth (in practice always 400
+// AuthorizationQueryParametersError, with an error message misleadingly blaming the
+// date format) — .aliyuncs.com endpoints must use V1: the string to sign is
+// "VERB\n\n\nExpires\n/bucket/key", and the URL uses the virtual-host path /key. Real S3/R2/MinIO stay on SigV4.
 
 const isOssEndpoint = (endpoint: string): boolean => /\.aliyuncs\.com(?::\d+)?\/?$/.test(endpoint);
 
 const ossPresignUrl = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE', ttlSec: number, contentType = ''): string => {
   const host = opts.endpoint.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const expires = Math.floor((opts.now?.() ?? new Date()).getTime() / 1000) + ttlSec;
-  // 签名 resource 恒为 /bucket/key 且用未编码原始 key——服务端对请求路径解码
-  // 后核对;请求 URL 形态随端点自适应:桶子域端点(host 以 `${bucket}.` 开头)
-  // 走 virtual-host(/key),裸区域端点走 path-style(/bucket/key)。此前无视
-  // 端点形态按 virtual-host 出链,裸端点配置(path_style 默认 true)预签全挂。
+  // The signed resource is always /bucket/key with the raw unencoded key — the server
+  // decodes the request path before verifying; the request URL adapts to the endpoint
+  // shape: bucket-subdomain endpoints (host starting with `${bucket}.`) use
+  // virtual-host (/key), bare regional endpoints use path-style (/bucket/key). We
+  // previously emitted virtual-host links regardless of endpoint shape, which broke
+  // every presign under bare-endpoint configs (path_style defaults to true).
   const resource = `/${opts.bucket}/${key}`;
   const vhost = host.startsWith(`${opts.bucket}.`);
   const path = vhost ? `/${encodeKeyPath(key)}` : `/${opts.bucket}/${encodeKeyPath(key)}`;
-  // Content-Type 参与 V1 签名(带 PUT 对象元数据的必经面)——签名串与请求头必须
-  // 逐字一致;GET 取件无 body,恒空串(GET 已知向量不受影响)。
+  // Content-Type takes part in the V1 signature (unavoidable when a PUT carries object
+  // metadata) — the string to sign and the request header must match verbatim; a GET
+  // fetch has no body, so it is always the empty string (GET known-answer vectors unaffected).
   const signature = createHmac('sha1', opts.secretAccessKey)
     .update(`${method}\n\n${contentType}\n${expires}\n${resource}`)
     .digest('base64');
@@ -158,9 +166,10 @@ const ossPresignUrl = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELET
     + `&Expires=${expires}&Signature=${encodeURIComponent(signature)}`;
 };
 
-/** 按端点类型分发预签（鉴权形状对调用方透明）。ttl 仅对外链语义；读写内联动作给短票。
- * contentType 仅进 OSS V1 签名串（PUT 元数据）；SigV4 预签 URL 只签 host，
- * Content-Type 随请求发即可、不参与签名。 */
+/** Dispatch presigning by endpoint type (the auth shape is transparent to callers). ttl only
+ * applies to outbound-link semantics; inline read/write actions get short-lived tickets.
+ * contentType only enters the OSS V1 string to sign (PUT metadata); a SigV4 presign URL
+ * signs only the host — send Content-Type with the request; it plays no part in the signature. */
 const presignFor = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE', ttlSec: number, contentType = ''): string =>
   isOssEndpoint(opts.endpoint)
     ? ossPresignUrl(opts, key, method, ttlSec, contentType)
@@ -168,8 +177,9 @@ const presignFor = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE',
 
 export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
   const base = opts.endpoint.replace(/\/$/, '');
-  // 非 OSS(S3/R2/minio)URL 形态由 pathStyle 显式控制;OSS 与预签同规则:
-  // 桶子域端点 virtual-host、裸端点 path-style(否则 OSS 下 list URL 形状错)。
+  // For non-OSS (S3/R2/minio) the URL shape is controlled explicitly by pathStyle; OSS
+  // follows the same rules as presign: bucket-subdomain endpoints get virtual-host,
+  // bare endpoints get path-style (otherwise the list URL shape is wrong on OSS).
   const hostNoScheme = base.replace(/^https?:\/\//, '');
   const objectUrl = (key: string): string =>
     isOssEndpoint(opts.endpoint) && hostNoScheme.startsWith(`${opts.bucket}.`)
@@ -179,10 +189,12 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
         : `${base}/${opts.bucket}/${key}`;
   const signed = (key: string, method: 'GET' | 'PUT' | 'DELETE', ttlSec = 300, contentType = ''): string =>
     presignFor(opts, key, method, ttlSec, contentType);
-  // 对象 Content-Type 进元数据:OSS 不 sniff,PUT 不带 = 恒 octet-stream,浏览器把
-  // 分享链当下载件(2026-09-30 存量对象实测:html 无类型、json octet-stream)。
-  // text/* 与 json 必须带 charset——收件人浏览器对裸 text/html 按 windows-1252
-  // 解码中文=乱码(与磁盘取件路由同判)。
+  // Put the object Content-Type into metadata: OSS does not sniff, so a PUT without it
+  // is always octet-stream and browsers treat the share link as a download (verified on
+  // existing objects 2026-09-30: html with no type, json octet-stream).
+  // text/* and json must carry a charset — the recipient's browser decodes a bare
+  // text/html as windows-1252 and turns Chinese text into mojibake (same judgment as
+  // the disk fetch route).
   const storedContentType = (key: string): string => {
     const mime = guessMime(key.split('/').pop() ?? key);
     return mime.startsWith('text/') || mime === 'application/json' ? `${mime}; charset=utf-8` : mime;
@@ -190,7 +202,7 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
   const publicHost = opts.publicHost?.replace(/^https?:\/\//, '').replace(/\/$/, '') ?? '';
   return {
     async put(key, bytes) {
-      // Content-Type 必须同时出现在 OSS V1 签名串与请求头且逐字一致(signed 已带)。
+      // Content-Type must appear in both the OSS V1 string to sign and the request header, byte-identical (signed already includes it).
       const contentType = storedContentType(key);
       return toResult((async () => {
         const res = await fetch(signed(key, 'PUT', 300, contentType), {
@@ -213,9 +225,11 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
       })(), 's3 delete failed');
     },
     async list(prefix) {
-      // 已知局限:匿名 ListObjects,仅公开桶可用——私有桶 403 被吞成 [](静默
-      // 为空)。当前无生产调用方(账本 list 走 DB);启用前须改为预签 ListObjects
-      //(SigV4 需把 list-type/prefix 纳入签名串,OSS V1 子资源规则另核)。
+      // Known limitation: anonymous ListObjects, only usable on public buckets — a 403 on
+      // a private bucket is swallowed into [] (silently empty). No production caller
+      // today (the ledger list goes through the DB); before enabling, switch to
+      // presigned ListObjects (SigV4 requires list-type/prefix in the string to sign;
+      // OSS V1 sub-resource rules need separate verification).
       try {
         const res = await fetch(`${objectUrl('')}?list-type=2&prefix=${encodeURIComponent(prefix)}`);
         if (!res.ok) return [];
@@ -227,8 +241,9 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
     },
     async url(key, ttlSec = 3600) {
       let out = presignFor(opts, key, 'GET', ttlSec);
-      // 公网分享域改写(仅 OSS V1):签名只覆盖资源路径,域名改写后链仍有效——
-      // Go makro 时代 share.juliasia.cn CNAME 同款回归。SigV4 签 host,改写即废。
+      // Public share-host rewrite (OSS V1 only): the signature covers only the resource
+      // path, so the link stays valid after the domain rewrite — a regression of the
+      // same share.juliasia.cn CNAME setup from the Go makro era. SigV4 signs the host; rewriting breaks it.
       if (publicHost !== '' && isOssEndpoint(opts.endpoint)) {
         out = out.replace(`https://${hostNoScheme}`, `https://${publicHost}`);
       }
@@ -237,9 +252,11 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
   };
 };
 
-// ---- 双后端（disk 主存 + S3/OSS 远端）---------------------------------------------
-// 纪律：disk 永远留影子（本地读取零网络、远端抖动不伤管线）；远端承接外链
-// presign；url() 时惰性回填存量字节——旧工件第一次分享时自动上远端，无迁移脚本。
+// ---- Dual backend (disk primary + S3/OSS remote) ---------------------------------------------
+// Discipline: disk always keeps a shadow copy (local reads need zero network; remote
+// flakiness never hurts the pipeline); the remote carries outbound-link presigns; url()
+// lazily backfills existing bytes — old artifacts reach the remote automatically on
+// their first share, no migration script needed.
 
 export const createDualBackend = (primary: ArtifactBackend, remote: ArtifactBackend): ArtifactBackend => ({
   async put(key, bytes) {
@@ -255,8 +272,9 @@ export const createDualBackend = (primary: ArtifactBackend, remote: ArtifactBack
     return remote.get(key);
   },
   async delete(key) {
-    // 远端删除失败不再静默:先记日志,并把远端错误并入返回值——否则 purge
-    // 路由只看到 primary 结果,照样返回 purged=N 而字节永久残留 OSS。
+    // Remote delete failures are no longer silent: log first, then fold the remote error
+    // into the return value — otherwise the purge route only sees the primary result and
+    // still returns purged=N while the bytes linger on OSS forever.
     const up = await remote.delete(key);
     if (!up.ok) console.error(`[artifacts] remote delete failed (bytes may remain on remote): ${up.error.message}`);
     const local = await primary.delete(key);
@@ -271,9 +289,11 @@ export const createDualBackend = (primary: ArtifactBackend, remote: ArtifactBack
   async url(key, ttlSec = 3600) {
     const local = await primary.get(key);
     if (local.ok) {
-      // 惰性回填:远端缺字节时先从主存补传。回填失败 = 远端无字节,此时出链
-      // 必死(presign 是纯本地计算恒 ok)——返回 err 让上游(share)走 failed
-      // 分支:可重试、不记忆化 share_url,绝不把死链固化进 meta。
+      // Lazy backfill: when the remote is missing bytes, upload them from the primary
+      // store first. A failed backfill = no bytes on the remote, so the outbound link is
+      // certainly dead (presign is a pure local computation and always succeeds) — return
+      // err so the upstream (share) takes the failed branch: retryable, no share_url
+      // memoization, and never bake a dead link into meta.
       const up = await remote.put(key, local.value);
       if (!up.ok) {
         console.error(`[artifacts] remote lazy-backfill failed: ${up.error.message}`);
@@ -281,15 +301,16 @@ export const createDualBackend = (primary: ArtifactBackend, remote: ArtifactBack
       }
       return remote.url(key, ttlSec);
     }
-    // 主存无字节:仅当远端确认有字节才出链,两端皆无 = 死链,同样返回 err。
+    // No bytes in the primary store: hand out a link only when the remote confirms it
+    // has the bytes; none on either side = dead link, also return err.
     const has = await remote.get(key);
     if (!has.ok) return err(new Error(`no bytes at either backend for key ${key.slice(0, 100)}`));
     return remote.url(key, ttlSec);
   },
 });
 
-/** SigV4 预签形状断言——仅适用于 AWS SigV4 URL;OSS V1 链接(OSSAccessKeyId/
- * Expires/Signature 三参)不适用,勿用于 OSS 分发链路的判断。 */
+/** SigV4 presign shape assertion — only valid for AWS SigV4 URLs; not for OSS V1 links
+ * (the OSSAccessKeyId/Expires/Signature triple); do not use it to judge OSS distribution links. */
 export const assertSigV4PresignShape = (url: string): boolean =>
   url.includes('X-Amz-Signature=') && url.includes('X-Amz-Credential=');
 export { err };

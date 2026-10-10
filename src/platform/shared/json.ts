@@ -1,4 +1,4 @@
-// 安全 JSON 与字符串工具（对应 Go internal/infra/util 的常用面）。
+// Safe JSON and string helpers (the commonly used surface of Go internal/infra/util).
 
 export type JsonValue =
   | string
@@ -24,6 +24,6 @@ export const asRecord = (v: JsonValue | null | undefined): JsonRecord =>
 
 export const asString = (v: JsonValue | undefined): string => (typeof v === 'string' ? v : '');
 
-/** 截断到 n 个字符（Go util.Truncate 对应物），超长以…收尾。 */
+/** Truncate to n characters (Go util.Truncate counterpart); overlong strings end with an ellipsis. */
 export const truncate = (s: string, n: number): string =>
   s.length <= n ? s : `${s.slice(0, Math.max(0, n - 1))}…`;

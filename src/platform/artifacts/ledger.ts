@@ -1,6 +1,7 @@
-// 工件账本（对应 Go lifecycle artifacts 表 + case-inbox 扫描）：行不可变——
-// 仅 storage 晋升与 deleted_at（墓碑）两个单向转变，从不 DELETE。字节侧经
-// Backend 端口（disk/S3），账本只记事实。
+// Artifact ledger (counterpart of the Go lifecycle artifacts table + case-inbox scan):
+// rows are immutable — only two one-way transitions, storage promotion and deleted_at
+// (tombstone); never a DELETE. Bytes flow through the Backend port (disk/S3); the
+// ledger records only facts.
 
 import type { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
@@ -36,10 +37,12 @@ export type ArtifactRole =
   | 'amendment' | 'send_check'
   | 'case_journey';
 
-/** 交付物的渲染角色（meta.view_role）：agent 申报单（reply.json）声明，
- * 引擎核验后盖章。body=将发出的原文（原样渲染，绝不美化）；report=给人
- * 审的中间态（iframe 渲染）；data=结构化数据；attachment=随信附件（web
- * 端按 report 同路渲染；发送侧判定是 view_role!=='body'，天然随信附上）。 */
+/** Render role of a deliverable (meta.view_role): declared in the agent's declaration
+ * (reply.json) and stamped by the engine after verification. body = the outgoing text
+ * (rendered verbatim, never embellished); report = an intermediate state for human
+ * review (iframe rendering); data = structured data; attachment = an attachment sent
+ * along with the message (the web app renders it like report; the send-side check is
+ * view_role!=='body', so it is attached naturally). */
 export type ViewRole = 'body' | 'report' | 'data' | 'attachment';
 
 export interface ArtifactRow {
@@ -64,11 +67,11 @@ export interface ArtifactLedger {
     bytes: number; sha256: string; stepId?: string; key: string; meta?: JsonRecord;
   }): ArtifactRow;
   list(workflowId: string, includeDeleted?: boolean): readonly ArtifactRow[];
-  /** 按 id 取登记行（含哈希与 key；发送步取件的唯一入口）。 */
+  /** Fetch a registered row by id (with hash and key; the single entry point for the send step's fetch). */
   get(id: string): ArtifactRow | null;
   updateMeta(id: string, patch: JsonRecord): void;
   tombstone(id: string): void;
-  /** 字节上传 + 登记（disk-primary：上传失败落 pending 标记，不抛）。 */
+  /** Byte upload + registration (disk-primary: on upload failure, record a pending marker instead of throwing). */
   putAndRegister(a: {
     workflowId: string; role: ArtifactRole; name: string; bytes: Buffer;
     mime?: string; stepId?: string; meta?: JsonRecord;
@@ -89,7 +92,7 @@ const rowTo = (r: Row): ArtifactRow => ({
   deletedAt: r['deleted_at'] === null ? null : str(r['deleted_at']),
 });
 
-/** 文件名→MIME 词表（账本登记与字节侧 PUT 元数据共用，单一事实源）。 */
+/** Filename-to-MIME vocabulary (shared by ledger registration and byte-side PUT metadata; single source of truth). */
 export const guessMime = (name: string): string => {
   const ext = name.split('.').pop()?.toLowerCase() ?? '';
   const map: Record<string, string> = {
@@ -97,7 +100,7 @@ export const guessMime = (name: string): string => {
     png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
     webp: 'image/webp', mp4: 'video/mp4', mov: 'video/quicktime', pdf: 'application/pdf',
     json: 'application/json', txt: 'text/plain', md: 'text/markdown', csv: 'text/csv',
-    // Office 家族：iOS QuickLook 按 MIME 判预览，缺了就是「octet-stream 暂不支持」
+    // Office family: iOS QuickLook picks the preview by MIME; without these it shows "octet-stream not supported"
     pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     ppt: 'application/vnd.ms-powerpoint',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -178,9 +181,10 @@ export const createArtifactLedger = (
   };
 };
 
-/** 申报单（reply.json / manifest.json）——agent 对自己交付物的声明。
- * 注意：这是待核验的申报，不是事实——文件在不在、哈希是什么、body 是谁
- * 全由 sweep 核验后决定；信封地址类字段引擎结构性无视（to 只认 meta.from）。 */
+/** Declaration (reply.json / manifest.json) — the agent's statement about its own deliverables.
+ * Note: this is a claim awaiting verification, not a fact — whether files exist, what the
+ * hashes are, and which one is the body are all decided by the sweep after verification;
+ * the engine structurally ignores envelope address fields (to only honors meta.from). */
 export interface DeliverableDecl {
   readonly file: string;
   readonly role: string;
@@ -192,8 +196,9 @@ export interface SweepEnvelope {
   readonly feedback_refs: readonly string[];
 }
 
-/** 交付物指针（sweep 收编后的形态；step output.deliverables 的元素类型）。
- * 引擎、端口与账本共用的唯一声明——多处独立手写形状曾各自漂移。 */
+/** Deliverable pointer (the shape after the sweep consolidates; the element type of step
+ * output.deliverables). The single declaration shared by engine, ports and ledger —
+ * independently hand-written shapes in multiple places used to drift apart. */
 export interface DeliverableRef {
   readonly id: string;
   readonly name: string;
@@ -203,15 +208,16 @@ export interface DeliverableRef {
   readonly summary: string;
 }
 
-/** JSON 宽容判型：是 sweep 产出的交付物指针（id/sha256/name 齐备）。 */
+/** Lenient JSON type check: is it a sweep-produced deliverable pointer (id/sha256/name all present). */
 export const isDeliverableRef = (v: unknown): v is DeliverableRef =>
   v !== null && typeof v === 'object' &&
   typeof (v as DeliverableRef).id === 'string' &&
   typeof (v as DeliverableRef).sha256 === 'string' &&
   typeof (v as DeliverableRef).name === 'string';
 
-/** 信封（申报单 envelope）宽容判型：异形返回 null。申报单是待核验的
- * 申报不是事实——解析只做形状收窄，语义核验在 sweep。 */
+/** Lenient type check for the (declaration) envelope: malformed shapes return null. A
+ * declaration is a claim awaiting verification, not a fact — parsing only narrows the
+ * shape; semantic verification happens in the sweep. */
 export const parseEnvelope = (v: unknown): SweepEnvelope | null => {
   if (v === null || typeof v !== 'object' || Array.isArray(v)) return null;
   const env = v as { in_reply_to_hint?: unknown; feedback_refs?: unknown };
@@ -222,7 +228,7 @@ export const parseEnvelope = (v: unknown): SweepEnvelope | null => {
   };
 };
 
-/** sweep 结果：登记后的交付物指针（step output.deliverables 的数据源）。 */
+/** Sweep result: registered deliverable pointers (the data source of step output.deliverables). */
 export interface SweepResult {
   readonly count: number;
   readonly entries: readonly DeliverableRef[];
@@ -237,14 +243,15 @@ const VIEW_ROLES: readonly ViewRole[] = ['body', 'report', 'data', 'attachment']
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** 数据岛 JSON 转 <script> 安全形（`</script>` 注入面收口）。 */
+/** JSON for the data island in <script>-safe form (closes the `</script>` injection surface). */
 const islandJson = (v: Record<string, string>): string =>
   JSON.stringify(v).replace(/</g, '\\u003c');
 
-/** 引擎兜底结果页：sweep 收编后发现无 HTML 主交付物时，把最佳文本交付物
- * （body 优先）包成自包含 HTML——详情页不再渲染无意义的 txt 墙
- * （wf_9658ce9225e0，2026-10-05 用户裁定：结果 artifact 本来就该是 html）。
- * 兜底身份显性化：页眉注明 + 数据岛 generated_by=engine-fallback。 */
+/** Engine fallback result page: when the sweep finds no primary HTML deliverable, wrap
+ * the best text deliverable (body first) into a self-contained HTML — the detail page no
+ * longer renders a meaningless wall of txt (wf_9658ce9225e0, user ruling 2026-10-05:
+ * the result artifact should have been html in the first place). The fallback identity is
+ * explicit: noted in the page header + data island generated_by=engine-fallback. */
 const fallbackResultHtml = (workflowId: string, sourceName: string, text: string): string =>
   '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -263,14 +270,16 @@ const fallbackResultHtml = (workflowId: string, sourceName: string, text: string
   islandJson({ workflow_id: workflowId, generated_by: 'engine-fallback', source_file: sourceName }) +
   '</script></body></html>';
 
-/** case-inbox 收编（对齐 Go collectCaseInbox 并升级为契约入口）：
- * ① 申报单先读（声明 view_role/摘要/信封提示）；
- * ② 逐文件登记（哈希入账，meta 盖 view_role）——body 角色唯一，多重申报
- *    全部降级 report 并记 warning（发送步只见唯一 body，契约违规显式暴露）；
- * ③ 登记成功即从 inbox 删除文件——工件库拥有字节后，inbox 回到空位，
- *    同名再交付自然形成新版本（seq+1），而不是重复登记；
- * ④ HTML 兜底——交付物里没有 HTML 时引擎合成 result.html（见
- *    fallbackResultHtml），count=entries.length（含兜底件）。 */
+/** case-inbox consolidation (aligned with Go collectCaseInbox, upgraded to a contract entry point):
+ * ① read the declaration first (declares view_role/summary/envelope hints);
+ * ② register files one by one (hash goes into the ledger, view_role stamped into meta) —
+ *    the body role is unique; multiple body declarations are all demoted to report with a
+ *    warning (the send step sees a single body only, contract violations surface explicitly);
+ * ③ delete each file from the inbox once registered — after the artifact store owns the
+ *    bytes the inbox returns to empty; re-delivering the same name naturally forms a new
+ *    version (seq+1) instead of duplicate registration;
+ * ④ HTML fallback — when the deliverables contain no HTML, the engine synthesizes
+ *    result.html (see fallbackResultHtml); count=entries.length (fallback included). */
 export const sweepCaseInbox = async (deps: {
   inboxDir: string;
   workflowId: string;
@@ -288,9 +297,9 @@ export const sweepCaseInbox = async (deps: {
   for (const n of names) {
     try {
       if ((await stat(join(deps.inboxDir, n))).isFile()) files.push(n);
-    } catch { /* 竞态消失 */ }
+    } catch { /* vanished mid-race */ }
   }
-  // ① 申报单：只认 inbox 里的第一份合法 JSON；畸形 JSON = 无申报单处理。
+  // ① Declaration: only the first valid JSON among inbox files counts; malformed JSON is treated as no declaration.
   let decls: DeliverableDecl[] = [];
   let envelope: SweepEnvelope | null = null;
   let hasManifest = false;
@@ -312,9 +321,9 @@ export const sweepCaseInbox = async (deps: {
     } catch (e) {
       deps.log?.(`case-inbox manifest parse failed: ${String(e)}`);
     }
-    break; // 只认第一份命中的申报单名
+    break; // only the first matching declaration name counts
   }
-  // ② body 唯一性核验：多重 body 申报整体降级。
+  // ② body uniqueness check: multiple body declarations are demoted as a whole.
   const warnings: string[] = [];
   const bodyFiles = decls.filter((d) => d.role === 'body');
   if (bodyFiles.length > 1) {
@@ -322,16 +331,18 @@ export const sweepCaseInbox = async (deps: {
   }
   const declOf = new Map(decls.map((d) => [d.file, d]));
   const entries: SweepResult['entries'][number][] = [];
-  // HTML 兜底线索（2026-10-05 wf_9658ce9225e0）：sweep 里没有 HTML 交付物时，
-  // 引擎把最佳文本交付物包成 result.html——结果工件恒为可渲染的 HTML，
-  // 不再依赖 agent 的契约纪律（宪法：引擎负责查，人只裁断）。
+  // HTML fallback provenance (2026-10-05 wf_9658ce9225e0): when the sweep contains no
+  // HTML deliverable, the engine wraps the best text deliverable into result.html — the
+  // result artifact is always renderable HTML and no longer depends on the agent's
+  // contract discipline (constitution: the engine checks, humans only rule).
   let hasHtml = false;
   let bodySrc: { name: string; viewRole: ViewRole; bytes: Buffer } | null = null;
   let textSrc: { name: string; viewRole: ViewRole; bytes: Buffer } | null = null;
   for (const name of files) {
     const p = join(deps.inboxDir, name);
     if (MANIFEST_NAMES.includes(name as (typeof MANIFEST_NAMES)[number])) {
-      // 申报单本身不入交付物列表（它不是给人审的产物），登记后同样收编删除。
+      // The declaration itself does not enter the deliverable list (it is not an artifact
+      // for human review); it is likewise consolidated (deleted) after registration.
       try {
         await deps.ledger.putAndRegister({
           workflowId: deps.workflowId, role: 'agent_output', name,
@@ -347,7 +358,7 @@ export const sweepCaseInbox = async (deps: {
     try {
       const bytes = await readFile(p);
       const decl = declOf.get(name);
-      let viewRole: ViewRole = 'report'; // 无申报 = 默认 report；body 必须显式申报
+      let viewRole: ViewRole = 'report'; // no declaration = default report; body must be declared explicitly
       let summary = '';
       if (decl) {
         summary = typeof decl.summary === 'string' ? decl.summary : '';
@@ -363,7 +374,7 @@ export const sweepCaseInbox = async (deps: {
         workflowId: deps.workflowId, role: 'agent_output', name, bytes,
         stepId: deps.stepId, meta: { view_role: viewRole, ...(summary !== '' ? { summary } : {}) },
       });
-      await unlink(p); // ③ 所有权转移：登记即收编，inbox 回空
+      await unlink(p); // ③ ownership transfer: to register is to consolidate; the inbox returns to empty
       entries.push({
         id: row.id, name, view_role: viewRole, sha256: row.sha256,
         bytes: row.bytes, summary,
@@ -379,12 +390,15 @@ export const sweepCaseInbox = async (deps: {
       deps.log?.(`case-inbox sweep ${name}: ${String(e)}`);
     }
   }
-  // ④ HTML 兜底：无 HTML 交付物且有文本可包时合成 result.html（view_role=
-  // report，不随信出门；纯非文本交付如图片原生可渲染，不强行包壳）。
-  // 十四跑 R1（P2-6）：先查工件库——多步单步 1 已交真 HTML 时，步 2 的
-  // sweep 不再合成冗余兜底件（版本链+1、警告误报）。只认非兜底件
-  // （generated!=engine_fallback），排除本引擎自己先前合成的兜底；墓碑
-  // （已删真 HTML）不算在场。list 默认剔墓碑。
+  // ④ HTML fallback: synthesize result.html when there is no HTML deliverable but a text
+  // one to wrap (view_role=report, never sent with the message; purely non-text
+  // deliverables such as images render natively and are not force-wrapped).
+  // Run-14 R1 (P2-6): check the artifact store first — once a multi-run's run 1 has
+  // delivered real HTML, run 2's sweep no longer synthesizes a redundant fallback
+  // (version chain +1, spurious warning). Only non-fallback rows count
+  // (generated!=engine_fallback), excluding fallbacks this engine itself synthesized
+  // earlier; tombstones (deleted real HTML) do not count as present. list drops
+  // tombstones by default.
   const ledgerHasHtml = deps.ledger.list(deps.workflowId).some((row) =>
     row.mime === 'text/html' && row.meta['generated'] !== 'engine_fallback');
   const src = bodySrc ?? textSrc;
