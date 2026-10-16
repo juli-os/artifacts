@@ -3,7 +3,7 @@
 
 import { createHash, createHmac } from 'node:crypto';
 import { mkdir, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promises';
-import { join, resolve, sep } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { err, ok, toResult, type Result } from '../shared/result.ts';
 import { guessMime } from './ledger.ts';
 
@@ -33,7 +33,7 @@ export const createDiskBackend = (rootDir: string): ArtifactBackend => ({
   async put(key, bytes) {
     const c = containedPath(rootDir, key);
     if ('error' in c) return err(c.error);
-    await mkdir(c.path.replace(/[/\\][^/\\]*$/, ''), { recursive: true });
+    await mkdir(dirname(c.path), { recursive: true });
     return toResult(writeFile(c.path, bytes), 'disk put failed');
   },
   async get(key) {
@@ -50,7 +50,13 @@ export const createDiskBackend = (rootDir: string): ArtifactBackend => ({
   },
   async list(prefix) {
     try {
+      // 与 put/get/delete 同一 containment 纪律:list('../sibling') 此前会
+      // 走出 root 列到外部目录并产出带根外前缀的坏键——解析后必须落在 root 内
+      // (root 本身是合法前缀:list('') 仍列出全部)。逃逸一律返回 []。
+      const root = resolve(rootDir);
       const dir = join(rootDir, prefix);
+      const target = resolve(dir);
+      if (target !== root && !target.startsWith(root + sep)) return [];
       const walk = async (d: string): Promise<readonly string[]> => {
         const entries = await readdir(d, { withFileTypes: true });
         const out: string[] = [];
@@ -91,9 +97,11 @@ const shaHex = (data: string | Buffer): string => createHash('sha256').update(da
 
 /** key 的 URL 编码:逐段 encodeURIComponent(保留 /)——key 来自文件名
  * (case-inbox readdir,agent/用户可控),可含 ?、#、空格、字面 %;裸拼会被
- * 当 URL 结构截断,并与签名串失配(SignatureDoesNotMatch/404)。 */
+ * 当 URL 结构截断,并与签名串失配(SignatureDoesNotMatch/404)。
+ * encodeURIComponent 不编 !'()*——SigV4 canonical URI 要求 RFC3986 严格形,
+ * 追加一轮百分号编码。 */
 const encodeKeyPath = (key: string): string =>
-  key.split('/').map(encodeURIComponent).join('/');
+  key.split('/').map((s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)).join('/');
 
 /** S3/OSS 错误体瘦身:只提取 <Code>/<Message>(错误 XML 含 AK ID、内部端点,
  * 不整段入日志);非 XML 时掩码 accessKeyId 后截断。 */
@@ -107,7 +115,9 @@ const sanitizeErrorBody = (body: string, accessKeyId: string): string => {
 
 const presignUrl = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE', ttlSec: number): string => {
   const now = opts.now?.() ?? new Date();
-  const amzDate = `${now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}Z`;
+  // SigV4 amzDate 形状必须是 YYYYMMDD'T'HHMMSS'Z'——toISOString 自带尾随 Z,
+  // 连同毫秒一起剥掉再补恰好一个 Z(此前双 Z,预签 URL 请求时恒被拒)。
+  const amzDate = `${now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, '')}Z`;
   const dateStamp = amzDate.slice(0, 8);
   const credentialScope = `${dateStamp}/${opts.region}/s3/aws4_request`;
   const host = opts.endpoint.replace(/^https?:\/\//, '').replace(/\/$/, '');
@@ -292,4 +302,3 @@ export const createDualBackend = (primary: ArtifactBackend, remote: ArtifactBack
  * Expires/Signature 三参)不适用,勿用于 OSS 分发链路的判断。 */
 export const assertSigV4PresignShape = (url: string): boolean =>
   url.includes('X-Amz-Signature=') && url.includes('X-Amz-Credential=');
-export { err };
