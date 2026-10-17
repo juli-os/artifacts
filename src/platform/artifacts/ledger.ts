@@ -160,7 +160,7 @@ export const createArtifactLedger = (
 
     async putAndRegister(a) {
       const sha256 = createHash('sha256').update(a.bytes).digest('hex');
-      const key = `cases/${a.workflowId}/${a.role}/${Date.now()}-${a.name}`;
+      const key = `cases/${a.workflowId}/${a.role}/${clock.now().getTime()}-${a.name}`;
       const row = {
         workflowId: a.workflowId, role: a.role, name: a.name,
         mime: a.mime ?? guessMime(a.name), bytes: a.bytes.length, sha256, stepId: a.stepId ?? '',
