@@ -3,7 +3,7 @@
 // Usage:
 //   juli-artifacts demo  <dir>          Seed a demo store + ledger (3 artifacts)
 //   juli-artifacts ls    <dir>          List registered artifacts
-//   juli-artifacts verify <dir> [id]    Recompute hashes vs registrations (integrity check)
+//   juli-artifacts verify <dir>        Recompute hashes vs registrations (integrity check)
 // <dir> = directory holding artifacts.db + store/
 import { join } from 'node:path';
 import { mkdirSync } from 'node:fs';
@@ -35,15 +35,10 @@ async function demo() {
 
 async function ls() {
   const { ledger } = open();
-  const ids = new Set<string>();
-  for (const w of ['wf_demo']) ledger.list(w).forEach((r) => ids.add(r.id));
-  // list across any workflow: scan ledger rows via list on known prefix is not generic;
-  // fall back to raw db query through the ledger's own db handle.
   const rows = ledger.list('wf_demo');
   if (!rows.length) { console.log('(no artifacts for wf_demo — run demo first)'); return; }
   console.log(pad('ID', 18) + pad('ROLE', 12) + pad('NAME', 20) + pad('BYTES', 8) + 'SHA256 (first 12)');
   for (const r of rows) console.log(pad(r.id, 18) + pad(r.role, 12) + pad(r.name, 20) + pad(r.bytes, 8) + r.sha256.slice(0, 12));
-  void ids;
 }
 
 async function verify() {
@@ -54,7 +49,7 @@ async function verify() {
   for (const r of rows) {
     const f = await backend.get(r.key);
     if (!f.ok) { console.log(`✗ ${r.name}: content missing`); badCount++; continue; }
-    const match = sha((f as { ok: true; value: Buffer }).value) === r.sha256;
+    const match = sha(f.value) === r.sha256;
     console.log((match ? '✓ ' : '✗ ') + pad(r.name, 22) + (match ? 'hash matches registration' : 'HASH MISMATCH — tampered or corrupted'));
     match ? okCount++ : badCount++;
   }

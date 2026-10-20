@@ -2,7 +2,7 @@
 // S3 presign 用 AWS SigV4 手签（零 SDK 依赖，R2/OSS/minio 兼容 path-style）。
 
 import { createHash, createHmac } from 'node:crypto';
-import { mkdir, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 import { err, ok, toResult, type Result } from '../shared/result.ts';
 import { guessMime } from './ledger.ts';
@@ -44,9 +44,7 @@ export const createDiskBackend = (rootDir: string): ArtifactBackend => ({
   async delete(key) {
     const c = containedPath(rootDir, key);
     if ('error' in c) return err(c.error);
-    return toResult((async () => {
-      await unlink(c.path);
-    })(), 'disk delete failed');
+    return toResult(unlink(c.path), 'disk delete failed');
   },
   async list(prefix) {
     try {
@@ -95,6 +93,9 @@ export interface S3Opts {
 const hmac = (key: Buffer | string, data: string): Buffer => createHmac('sha256', key).update(data).digest();
 const shaHex = (data: string | Buffer): string => createHash('sha256').update(data).digest('hex');
 
+/** 端点/域名归一:去 scheme 与单个尾随斜杠——签名串与 URL 拼接共用的 host 形。 */
+const hostOnly = (u: string): string => u.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
 /** key 的 URL 编码:逐段 encodeURIComponent(保留 /)——key 来自文件名
  * (case-inbox readdir,agent/用户可控),可含 ?、#、空格、字面 %;裸拼会被
  * 当 URL 结构截断,并与签名串失配(SignatureDoesNotMatch/404)。
@@ -120,7 +121,7 @@ const presignUrl = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE',
   const amzDate = `${now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, '')}Z`;
   const dateStamp = amzDate.slice(0, 8);
   const credentialScope = `${dateStamp}/${opts.region}/s3/aws4_request`;
-  const host = opts.endpoint.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const host = hostOnly(opts.endpoint);
   const canonicalUri = opts.pathStyle === false
     ? `/${encodeKeyPath(key)}`
     : `/${opts.bucket}/${encodeKeyPath(key)}`;
@@ -150,7 +151,7 @@ const presignUrl = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE',
 const isOssEndpoint = (endpoint: string): boolean => /\.aliyuncs\.com(?::\d+)?\/?$/.test(endpoint);
 
 const ossPresignUrl = (opts: S3Opts, key: string, method: 'GET' | 'PUT' | 'DELETE', ttlSec: number, contentType = ''): string => {
-  const host = opts.endpoint.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const host = hostOnly(opts.endpoint);
   const expires = Math.floor((opts.now?.() ?? new Date()).getTime() / 1000) + ttlSec;
   // 签名 resource 恒为 /bucket/key 且用未编码原始 key——服务端对请求路径解码
   // 后核对;请求 URL 形态随端点自适应:桶子域端点(host 以 `${bucket}.` 开头)
@@ -197,7 +198,7 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
     const mime = guessMime(key.split('/').pop() ?? key);
     return mime.startsWith('text/') || mime === 'application/json' ? `${mime}; charset=utf-8` : mime;
   };
-  const publicHost = opts.publicHost?.replace(/^https?:\/\//, '').replace(/\/$/, '') ?? '';
+  const publicHost = hostOnly(opts.publicHost ?? '');
   return {
     async put(key, bytes) {
       // Content-Type 必须同时出现在 OSS V1 签名串与请求头且逐字一致(signed 已带)。

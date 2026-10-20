@@ -173,7 +173,7 @@ export const createArtifactLedger = (
       } else {
         row.meta = { ...row.meta, pending: true, upload_error: 'no backend configured' };
       }
-      return this.register({ ...row, key: row.key, meta: row.meta });
+      return this.register(row);
     },
   };
 };
