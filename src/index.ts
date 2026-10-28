@@ -1,5 +1,5 @@
 // L2 artifacts layer facade — the only public surface of this layer.
-// This is the COMPLETE export surface of the two source modules.
+// This is the COMPLETE export surface of the source modules.
 // Dependency rule: only inward deps (shared); consumers must never bypass
 // this facade to reach internal files.
 export {

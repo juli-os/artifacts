@@ -181,7 +181,7 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
   const base = opts.endpoint.replace(/\/$/, '');
   // 非 OSS(S3/R2/minio)URL 形态由 pathStyle 显式控制;OSS 与预签同规则:
   // 桶子域端点 virtual-host、裸端点 path-style(否则 OSS 下 list URL 形状错)。
-  const hostNoScheme = base.replace(/^https?:\/\//, '');
+  const hostNoScheme = hostOnly(opts.endpoint);
   const objectUrl = (key: string): string =>
     isOssEndpoint(opts.endpoint) && hostNoScheme.startsWith(`${opts.bucket}.`)
       ? `${base}/${key}`
@@ -195,7 +195,7 @@ export const createS3Backend = (opts: S3Opts): ArtifactBackend => {
   // text/* 与 json 必须带 charset——收件人浏览器对裸 text/html 按 windows-1252
   // 解码中文=乱码(与磁盘取件路由同判)。
   const storedContentType = (key: string): string => {
-    const mime = guessMime(key.split('/').pop() ?? key);
+    const mime = guessMime(key.split('/').pop() ?? '');
     return mime.startsWith('text/') || mime === 'application/json' ? `${mime}; charset=utf-8` : mime;
   };
   const publicHost = hostOnly(opts.publicHost ?? '');

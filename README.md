@@ -42,7 +42,7 @@ import { DatabaseSync } from 'node:sqlite';
 const backend = createDiskBackend('./store');
 const ledger = createArtifactLedger(new DatabaseSync('./artifacts.db'), backend);
 const row = await ledger.putAndRegister({
-  workflowId: 'wf_1', role: 'body', name: 'summary.md',
+  workflowId: 'wf_1', role: 'agent_output', name: 'summary.md',
   bytes: Buffer.from('# Hello\n'), mime: 'text/markdown',
 });
 // row.sha256 is now the receipt for those exact bytes

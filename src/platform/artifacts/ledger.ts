@@ -133,7 +133,7 @@ export const createArtifactLedger = (
         a.mime ?? guessMime(a.name), a.bytes, a.sha256, a.stepId ?? null,
         a.key, JSON.stringify(a.meta ?? {}), now(),
       );
-      return this.list(a.workflowId).find((x) => x.id === id)!;
+      return this.get(id)!;
     },
 
     list(workflowId, includeDeleted = false) {
@@ -326,8 +326,8 @@ export const sweepCaseInbox = async (deps: {
   // 引擎把最佳文本交付物包成 result.html——结果工件恒为可渲染的 HTML，
   // 不再依赖 agent 的契约纪律（宪法：引擎负责查，人只裁断）。
   let hasHtml = false;
-  let bodySrc: { name: string; viewRole: ViewRole; bytes: Buffer } | null = null;
-  let textSrc: { name: string; viewRole: ViewRole; bytes: Buffer } | null = null;
+  let bodySrc: { name: string; bytes: Buffer } | null = null;
+  let textSrc: { name: string; bytes: Buffer } | null = null;
   for (const name of files) {
     const p = join(deps.inboxDir, name);
     if (MANIFEST_NAMES.includes(name as (typeof MANIFEST_NAMES)[number])) {
@@ -371,7 +371,7 @@ export const sweepCaseInbox = async (deps: {
       const mime = row.mime;
       if (mime === 'text/html') hasHtml = true;
       if (mime === 'text/plain' || mime === 'text/markdown') {
-        const src = { name, viewRole, bytes };
+        const src = { name, bytes };
         if (viewRole === 'body') bodySrc ??= src;
         else textSrc ??= src;
       }
@@ -388,7 +388,7 @@ export const sweepCaseInbox = async (deps: {
   const ledgerHasHtml = deps.ledger.list(deps.workflowId).some((row) =>
     row.mime === 'text/html' && row.meta['generated'] !== 'engine_fallback');
   const src = bodySrc ?? textSrc;
-  if (entries.length > 0 && !hasHtml && !ledgerHasHtml && src !== null) {
+  if (!hasHtml && !ledgerHasHtml && src !== null) {
     const html = fallbackResultHtml(deps.workflowId, src.name, src.bytes.toString('utf8'));
     const row = await deps.ledger.putAndRegister({
       workflowId: deps.workflowId, role: 'agent_output', name: 'result.html',

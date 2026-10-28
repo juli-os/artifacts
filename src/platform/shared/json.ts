@@ -21,9 +21,3 @@ export const safeParse = (raw: string | null | undefined): JsonValue | null => {
 
 export const asRecord = (v: JsonValue | null | undefined): JsonRecord =>
   v && typeof v === 'object' && !Array.isArray(v) ? (v as JsonRecord) : {};
-
-export const asString = (v: JsonValue | undefined): string => (typeof v === 'string' ? v : '');
-
-/** 截断到 n 个字符（Go util.Truncate 对应物），超长以…收尾。 */
-export const truncate = (s: string, n: number): string =>
-  s.length <= n ? s : `${s.slice(0, Math.max(0, n - 1))}…`;
