@@ -27,11 +27,15 @@
     "build": "tsc -p tsconfig.build.json && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild bin/juli-artifacts.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/juli-artifacts.js && chmod +x dist/juli-artifacts.js && python3 scripts/postbuild.py",
     "test": "node --test \"test/*.test.ts\"",
     "smoke:dist": "node --input-type=module -e \"import('./dist/index.js').then(async m => { const { join } = await import('node:path'); const { mkdtempSync } = await import('node:fs'); const { tmpdir } = await import('node:os'); const dir = mkdtempSync(join(tmpdir(), 'peel-d2-')); const b = m.createDiskBackend(join(dir, 's')); const { DatabaseSync } = await import('node:sqlite'); const l = m.createArtifactLedger(new DatabaseSync(join(dir, 'a.db')), b); const row = await l.putAndRegister({workflowId:'wf',role:'body',name:'x.md',bytes:Buffer.from('hi')}); if (!l.get(row.id)) process.exit(1); console.log('DIST SMOKE OK'); })\"",
+    "docs:gen": "node scripts/gen-docs.mjs && typedoc",
+    "docs:build": "npm run docs:gen && mkdocs build --strict",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "esbuild": "^0.24.0",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.14.1",
     "typescript": "^5.6.0"
   },
   "publishConfig": {

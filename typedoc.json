@@ -1,0 +1,13 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "tsconfig": "tsconfig.build.json",
+  "exclude": ["**/*.test.ts", "node_modules"],
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "entryFileName": "index",
+  "gitRevision": "main",
+  "excludePrivate": true,
+  "readme": "none",
+  "hideGenerator": true,
+  "cleanOutputDir": true
+}

@@ -3,4 +3,5 @@ node_modules/
 *.db-journal
 store/
 dist/
+site/
 .DS_Store
