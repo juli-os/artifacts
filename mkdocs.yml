@@ -4,6 +4,13 @@ strict: true
 theme:
   name: material
   language: zh
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
 nav:
   - 首页: index.md
+  - 架构: gen/architecture.md
   - API 参考: api/index.md
