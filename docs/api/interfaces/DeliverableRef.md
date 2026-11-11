@@ -6,7 +6,7 @@
 
 # Interface: DeliverableRef
 
-Defined in: [artifacts/ledger.ts:197](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L197)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:242](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L242)
 
 交付物指针（sweep 收编后的形态；step output.deliverables 的元素类型）。
 引擎、端口与账本共用的唯一声明——多处独立手写形状曾各自漂移。
@@ -17,7 +17,7 @@ Defined in: [artifacts/ledger.ts:197](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **bytes**: `number`
 
-Defined in: [artifacts/ledger.ts:202](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L202)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:247](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L247)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [artifacts/ledger.ts:202](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **id**: `string`
 
-Defined in: [artifacts/ledger.ts:198](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L198)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:243](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L243)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [artifacts/ledger.ts:198](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **name**: `string`
 
-Defined in: [artifacts/ledger.ts:199](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L199)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:244](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L244)
 
 ***
 
@@ -41,7 +41,7 @@ Defined in: [artifacts/ledger.ts:199](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **sha256**: `string`
 
-Defined in: [artifacts/ledger.ts:201](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L201)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:246](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L246)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [artifacts/ledger.ts:201](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **summary**: `string`
 
-Defined in: [artifacts/ledger.ts:203](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L203)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:248](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L248)
 
 ***
 
@@ -57,4 +57,4 @@ Defined in: [artifacts/ledger.ts:203](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **view\_role**: [`ViewRole`](../type-aliases/ViewRole.md)
 
-Defined in: [artifacts/ledger.ts:200](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L200)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:245](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L245)

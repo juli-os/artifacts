@@ -8,11 +8,11 @@
 
 - [ArtifactBackend](interfaces/ArtifactBackend.md)
 - [ArtifactLedger](interfaces/ArtifactLedger.md)
+- [ArtifactLightRow](interfaces/ArtifactLightRow.md)
 - [ArtifactRow](interfaces/ArtifactRow.md)
-- [Clock](interfaces/Clock.md)
+- [ArtifactViewRow](interfaces/ArtifactViewRow.md)
 - [DeliverableDecl](interfaces/DeliverableDecl.md)
 - [DeliverableRef](interfaces/DeliverableRef.md)
-- [IdGen](interfaces/IdGen.md)
 - [S3Opts](interfaces/S3Opts.md)
 - [SweepEnvelope](interfaces/SweepEnvelope.md)
 - [SweepResult](interfaces/SweepResult.md)
@@ -20,30 +20,19 @@
 ## Type Aliases
 
 - [ArtifactRole](type-aliases/ArtifactRole.md)
-- [JsonRecord](type-aliases/JsonRecord.md)
-- [JsonValue](type-aliases/JsonValue.md)
-- [Result](type-aliases/Result.md)
 - [ViewRole](type-aliases/ViewRole.md)
 
 ## Variables
 
-- [randomIds](variables/randomIds.md)
-- [systemClock](variables/systemClock.md)
+- [assertSigV4PresignShape](variables/assertSigV4PresignShape.md)
+- [createDiskBackend](variables/createDiskBackend.md)
+- [createDualBackend](variables/createDualBackend.md)
+- [createS3Backend](variables/createS3Backend.md)
+- [guessMime](variables/guessMime.md)
 
 ## Functions
 
-- [asRecord](functions/asRecord.md)
-- [assertSigV4PresignShape](functions/assertSigV4PresignShape.md)
 - [createArtifactLedger](functions/createArtifactLedger.md)
-- [createDiskBackend](functions/createDiskBackend.md)
-- [createDualBackend](functions/createDualBackend.md)
-- [createS3Backend](functions/createS3Backend.md)
-- [err](functions/err.md)
-- [guessMime](functions/guessMime.md)
 - [isDeliverableRef](functions/isDeliverableRef.md)
-- [ok](functions/ok.md)
 - [parseEnvelope](functions/parseEnvelope.md)
-- [rfc3339](functions/rfc3339.md)
-- [safeParse](functions/safeParse.md)
 - [sweepCaseInbox](functions/sweepCaseInbox.md)
-- [toResult](functions/toResult.md)

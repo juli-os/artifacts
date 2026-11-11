@@ -9,7 +9,9 @@ import { join } from 'node:path';
 import type { JsonRecord } from '../shared/json.ts';
 import { asRecord, safeParse } from '../shared/json.ts';
 import { rfc3339, type Clock, systemClock, type IdGen, randomIds } from '../shared/clock.ts';
-import type { ArtifactBackend } from './store.ts';
+import type { ArtifactBackend } from '@juli-os/silo';
+import { guessMime } from '@juli-os/silo';
+export { guessMime }; // 事实源随存储底座走（silo），对外面不变
 
 const MIGRATIONS = `
 CREATE TABLE IF NOT EXISTS artifacts (
@@ -117,23 +119,7 @@ const rowTo = (r: Row): ArtifactRow => ({
 });
 
 /** 文件名→MIME 词表（账本登记与字节侧 PUT 元数据共用，单一事实源）。 */
-export const guessMime = (name: string): string => {
-  const ext = name.split('.').pop()?.toLowerCase() ?? '';
-  const map: Record<string, string> = {
-    html: 'text/html', htm: 'text/html', svg: 'image/svg+xml',
-    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
-    webp: 'image/webp', mp4: 'video/mp4', mov: 'video/quicktime', pdf: 'application/pdf',
-    json: 'application/json', txt: 'text/plain', md: 'text/markdown', csv: 'text/csv',
-    // Office 家族：iOS QuickLook 按 MIME 判预览，缺了就是「octet-stream 暂不支持」
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    ppt: 'application/vnd.ms-powerpoint',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    doc: 'application/msword',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    xls: 'application/vnd.ms-excel',
-  };
-  return map[ext] ?? 'application/octet-stream';
-};
+
 
 export const createArtifactLedger = (
   db: DatabaseSync,

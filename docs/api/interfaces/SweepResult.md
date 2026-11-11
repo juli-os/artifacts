@@ -6,7 +6,7 @@
 
 # Interface: SweepResult
 
-Defined in: [artifacts/ledger.ts:226](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L226)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:271](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L271)
 
 sweep 结果：登记后的交付物指针（step output.deliverables 的数据源）。
 
@@ -16,7 +16,7 @@ sweep 结果：登记后的交付物指针（step output.deliverables 的数据�
 
 > `readonly` **count**: `number`
 
-Defined in: [artifacts/ledger.ts:227](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L227)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:272](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L272)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [artifacts/ledger.ts:227](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **entries**: readonly [`DeliverableRef`](DeliverableRef.md)[]
 
-Defined in: [artifacts/ledger.ts:228](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L228)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:273](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L273)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [artifacts/ledger.ts:228](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **envelope**: [`SweepEnvelope`](SweepEnvelope.md) \| `null`
 
-Defined in: [artifacts/ledger.ts:229](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L229)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:274](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L274)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [artifacts/ledger.ts:229](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **has\_manifest**: `boolean`
 
-Defined in: [artifacts/ledger.ts:231](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L231)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:276](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L276)
 
 ***
 
@@ -48,4 +48,4 @@ Defined in: [artifacts/ledger.ts:231](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **warnings**: readonly `string`[]
 
-Defined in: [artifacts/ledger.ts:230](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L230)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:275](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L275)

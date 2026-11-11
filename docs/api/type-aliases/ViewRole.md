@@ -8,7 +8,7 @@
 
 > **ViewRole** = `"body"` \| `"report"` \| `"data"` \| `"attachment"`
 
-Defined in: [artifacts/ledger.ts:43](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L43)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:45](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L45)
 
 交付物的渲染角色（meta.view_role）：agent 申报单（reply.json）声明，
 引擎核验后盖章。body=将发出的原文（原样渲染，绝不美化）；report=给人

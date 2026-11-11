@@ -6,7 +6,7 @@
 
 # Interface: ArtifactLedger
 
-Defined in: [artifacts/ledger.ts:61](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L61)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:63](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L63)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [artifacts/ledger.ts:61](https://github.com/juli-os/artifacts/blob/m
 
 > **get**(`id`): [`ArtifactRow`](ArtifactRow.md) \| `null`
 
-Defined in: [artifacts/ledger.ts:68](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L68)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:70](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L70)
 
 按 id 取登记行（含哈希与 key；发送步取件的唯一入口）。
 
@@ -30,11 +30,51 @@ Defined in: [artifacts/ledger.ts:68](https://github.com/juli-os/artifacts/blob/m
 
 ***
 
+### getLight()
+
+> **getLight**(`id`): [`ArtifactLightRow`](ArtifactLightRow.md) \| `null`
+
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:84](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L84)
+
+按 id 取分享取件所需最小行（key/墓碑位/属主单）。
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+[`ArtifactLightRow`](ArtifactLightRow.md) \| `null`
+
+***
+
+### getView()
+
+> **getView**(`id`): [`ArtifactViewRow`](ArtifactViewRow.md) \| `null`
+
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:86](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L86)
+
+按 id 取人视图行（多 name/mime）。
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+[`ArtifactViewRow`](ArtifactViewRow.md) \| `null`
+
+***
+
 ### list()
 
 > **list**(`workflowId`, `includeDeleted?`): readonly [`ArtifactRow`](ArtifactRow.md)[]
 
-Defined in: [artifacts/ledger.ts:66](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L66)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:68](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L68)
 
 #### Parameters
 
@@ -52,11 +92,25 @@ readonly [`ArtifactRow`](ArtifactRow.md)[]
 
 ***
 
+### listLight()
+
+> **listLight**(): readonly [`ArtifactLightRow`](ArtifactLightRow.md)[]
+
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:82](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L82)
+
+全量轻量行（id/key/墓碑位）——工件页过滤幽灵条目用。
+
+#### Returns
+
+readonly [`ArtifactLightRow`](ArtifactLightRow.md)[]
+
+***
+
 ### putAndRegister()
 
 > **putAndRegister**(`a`): `Promise`\<[`ArtifactRow`](ArtifactRow.md)\>
 
-Defined in: [artifacts/ledger.ts:72](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L72)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:74](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L74)
 
 字节上传 + 登记（disk-primary：上传失败落 pending 标记，不抛）。
 
@@ -70,7 +124,7 @@ Defined in: [artifacts/ledger.ts:72](https://github.com/juli-os/artifacts/blob/m
 
 ###### meta?
 
-[`JsonRecord`](../type-aliases/JsonRecord.md)
+`JsonRecord`
 
 ###### mime?
 
@@ -102,7 +156,7 @@ Defined in: [artifacts/ledger.ts:72](https://github.com/juli-os/artifacts/blob/m
 
 > **register**(`a`): [`ArtifactRow`](ArtifactRow.md)
 
-Defined in: [artifacts/ledger.ts:62](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L62)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:64](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L64)
 
 #### Parameters
 
@@ -118,7 +172,7 @@ Defined in: [artifacts/ledger.ts:62](https://github.com/juli-os/artifacts/blob/m
 
 ###### meta?
 
-[`JsonRecord`](../type-aliases/JsonRecord.md)
+`JsonRecord`
 
 ###### mime?
 
@@ -154,7 +208,7 @@ Defined in: [artifacts/ledger.ts:62](https://github.com/juli-os/artifacts/blob/m
 
 > **tombstone**(`id`): `void`
 
-Defined in: [artifacts/ledger.ts:70](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L70)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:72](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L72)
 
 #### Parameters
 
@@ -172,7 +226,7 @@ Defined in: [artifacts/ledger.ts:70](https://github.com/juli-os/artifacts/blob/m
 
 > **updateMeta**(`id`, `patch`): `void`
 
-Defined in: [artifacts/ledger.ts:69](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L69)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:71](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L71)
 
 #### Parameters
 
@@ -182,7 +236,7 @@ Defined in: [artifacts/ledger.ts:69](https://github.com/juli-os/artifacts/blob/m
 
 ##### patch
 
-[`JsonRecord`](../type-aliases/JsonRecord.md)
+`JsonRecord`
 
 #### Returns
 

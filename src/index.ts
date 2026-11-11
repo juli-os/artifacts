@@ -2,10 +2,12 @@
 // This is the COMPLETE export surface of the source modules.
 // Dependency rule: only inward deps (shared); consumers must never bypass
 // this facade to reach internal files.
+// 0.4.0：存储底座平移进 @juli-os/silo（2026-11-12 第 6 步）——本包专注登记
+// 归属，对外面经 re-export 保持一字不变（主仓零改动）。
 export {
   createDiskBackend, createS3Backend, createDualBackend,
   type ArtifactBackend, type S3Opts, assertSigV4PresignShape,
-} from './platform/artifacts/store.ts';
+} from '@juli-os/silo';
 export {
   createArtifactLedger, guessMime, parseEnvelope, isDeliverableRef, sweepCaseInbox,
   type ArtifactLedger, type ArtifactRow, type ArtifactRole, type ViewRole,

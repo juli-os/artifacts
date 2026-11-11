@@ -8,7 +8,7 @@
 
 > **sweepCaseInbox**(`deps`): `Promise`\<[`SweepResult`](../interfaces/SweepResult.md)\>
 
-Defined in: [artifacts/ledger.ts:274](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L274)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:319](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L319)
 
 case-inbox 收编（对齐 Go collectCaseInbox 并升级为契约入口）：
 ① 申报单先读（声明 view_role/摘要/信封提示）；

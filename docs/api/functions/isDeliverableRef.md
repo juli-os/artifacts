@@ -8,7 +8,7 @@
 
 > **isDeliverableRef**(`v`): `v is DeliverableRef`
 
-Defined in: [artifacts/ledger.ts:207](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L207)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:252](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L252)
 
 JSON 宽容判型：是 sweep 产出的交付物指针（id/sha256/name 齐备）。
 

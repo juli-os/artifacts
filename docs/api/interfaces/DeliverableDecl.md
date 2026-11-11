@@ -6,7 +6,7 @@
 
 # Interface: DeliverableDecl
 
-Defined in: [artifacts/ledger.ts:184](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L184)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:229](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L229)
 
 申报单（reply.json / manifest.json）——agent 对自己交付物的声明。
 注意：这是待核验的申报，不是事实——文件在不在、哈希是什么、body 是谁
@@ -18,7 +18,7 @@ Defined in: [artifacts/ledger.ts:184](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **file**: `string`
 
-Defined in: [artifacts/ledger.ts:185](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L185)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:230](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L230)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [artifacts/ledger.ts:185](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **role**: `string`
 
-Defined in: [artifacts/ledger.ts:186](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L186)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:231](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L231)
 
 ***
 
@@ -34,4 +34,4 @@ Defined in: [artifacts/ledger.ts:186](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **summary**: `string`
 
-Defined in: [artifacts/ledger.ts:187](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L187)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:232](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L232)

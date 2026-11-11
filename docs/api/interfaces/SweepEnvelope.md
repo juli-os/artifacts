@@ -6,7 +6,7 @@
 
 # Interface: SweepEnvelope
 
-Defined in: [artifacts/ledger.ts:190](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L190)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:235](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L235)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [artifacts/ledger.ts:190](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **feedback\_refs**: readonly `string`[]
 
-Defined in: [artifacts/ledger.ts:192](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L192)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:237](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L237)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [artifacts/ledger.ts:192](https://github.com/juli-os/artifacts/blob/
 
 > `readonly` **in\_reply\_to\_hint**: `string`
 
-Defined in: [artifacts/ledger.ts:191](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L191)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:236](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L236)

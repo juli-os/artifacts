@@ -6,7 +6,7 @@
 
 # Interface: ArtifactRow
 
-Defined in: [artifacts/ledger.ts:45](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L45)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:47](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L47)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [artifacts/ledger.ts:45](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **bytes**: `number`
 
-Defined in: [artifacts/ledger.ts:52](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L52)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:54](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L54)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [artifacts/ledger.ts:52](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **createdAt**: `string`
 
-Defined in: [artifacts/ledger.ts:57](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L57)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:59](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L59)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [artifacts/ledger.ts:57](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **deletedAt**: `string` \| `null`
 
-Defined in: [artifacts/ledger.ts:58](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L58)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:60](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L60)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [artifacts/ledger.ts:58](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **id**: `string`
 
-Defined in: [artifacts/ledger.ts:46](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L46)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:48](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L48)
 
 ***
 
@@ -46,15 +46,15 @@ Defined in: [artifacts/ledger.ts:46](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **key**: `string`
 
-Defined in: [artifacts/ledger.ts:55](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L55)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:57](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L57)
 
 ***
 
 ### meta
 
-> `readonly` **meta**: [`JsonRecord`](../type-aliases/JsonRecord.md)
+> `readonly` **meta**: `JsonRecord`
 
-Defined in: [artifacts/ledger.ts:56](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L56)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:58](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L58)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [artifacts/ledger.ts:56](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **mime**: `string`
 
-Defined in: [artifacts/ledger.ts:51](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L51)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:53](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L53)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [artifacts/ledger.ts:51](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **name**: `string`
 
-Defined in: [artifacts/ledger.ts:49](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L49)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:51](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L51)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [artifacts/ledger.ts:49](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **role**: [`ArtifactRole`](../type-aliases/ArtifactRole.md)
 
-Defined in: [artifacts/ledger.ts:48](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L48)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:50](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L50)
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: [artifacts/ledger.ts:48](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **seq**: `number`
 
-Defined in: [artifacts/ledger.ts:50](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L50)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:52](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L52)
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: [artifacts/ledger.ts:50](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **sha256**: `string`
 
-Defined in: [artifacts/ledger.ts:53](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L53)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:55](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L55)
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: [artifacts/ledger.ts:53](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **stepId**: `string`
 
-Defined in: [artifacts/ledger.ts:54](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L54)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:56](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L56)
 
 ***
 
@@ -110,4 +110,4 @@ Defined in: [artifacts/ledger.ts:54](https://github.com/juli-os/artifacts/blob/m
 
 > `readonly` **workflowId**: `string`
 
-Defined in: [artifacts/ledger.ts:47](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L47)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:49](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L49)

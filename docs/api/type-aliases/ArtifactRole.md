@@ -8,4 +8,4 @@
 
 > **ArtifactRole** = `"intake_attachment"` \| `"agent_output"` \| `"draft_attachment"` \| `"email_original"` \| `"email_attachment"` \| `"amendment"` \| `"send_check"` \| `"case_journey"`
 
-Defined in: [artifacts/ledger.ts:33](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L33)
+Defined in: [peel-l2-artifacts/src/platform/artifacts/ledger.ts:35](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/ledger.ts#L35)

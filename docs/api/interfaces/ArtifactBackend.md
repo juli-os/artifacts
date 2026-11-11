@@ -6,15 +6,15 @@
 
 # Interface: ArtifactBackend
 
-Defined in: [artifacts/store.ts:10](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/store.ts#L10)
+Defined in: silo/dist/silo/store.d.ts:2
 
 ## Methods
 
 ### delete()
 
-> **delete**(`key`): `Promise`\<[`Result`](../type-aliases/Result.md)\<`void`, `Error`\>\>
+> **delete**(`key`): `Promise`\<`Result`\<`void`, `Error`\>\>
 
-Defined in: [artifacts/store.ts:13](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/store.ts#L13)
+Defined in: silo/dist/silo/store.d.ts:5
 
 #### Parameters
 
@@ -24,15 +24,15 @@ Defined in: [artifacts/store.ts:13](https://github.com/juli-os/artifacts/blob/ma
 
 #### Returns
 
-`Promise`\<[`Result`](../type-aliases/Result.md)\<`void`, `Error`\>\>
+`Promise`\<`Result`\<`void`, `Error`\>\>
 
 ***
 
 ### get()
 
-> **get**(`key`): `Promise`\<[`Result`](../type-aliases/Result.md)\<`Buffer`\<`ArrayBufferLike`\>, `Error`\>\>
+> **get**(`key`): `Promise`\<`Result`\<`Buffer`\<`ArrayBufferLike`\>, `Error`\>\>
 
-Defined in: [artifacts/store.ts:12](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/store.ts#L12)
+Defined in: silo/dist/silo/store.d.ts:4
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [artifacts/store.ts:12](https://github.com/juli-os/artifacts/blob/ma
 
 #### Returns
 
-`Promise`\<[`Result`](../type-aliases/Result.md)\<`Buffer`\<`ArrayBufferLike`\>, `Error`\>\>
+`Promise`\<`Result`\<`Buffer`\<`ArrayBufferLike`\>, `Error`\>\>
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [artifacts/store.ts:12](https://github.com/juli-os/artifacts/blob/ma
 
 > **list**(`prefix`): `Promise`\<readonly `string`[]\>
 
-Defined in: [artifacts/store.ts:14](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/store.ts#L14)
+Defined in: silo/dist/silo/store.d.ts:6
 
 #### Parameters
 
@@ -66,9 +66,9 @@ Defined in: [artifacts/store.ts:14](https://github.com/juli-os/artifacts/blob/ma
 
 ### put()
 
-> **put**(`key`, `bytes`): `Promise`\<[`Result`](../type-aliases/Result.md)\<`void`, `Error`\>\>
+> **put**(`key`, `bytes`): `Promise`\<`Result`\<`void`, `Error`\>\>
 
-Defined in: [artifacts/store.ts:11](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/store.ts#L11)
+Defined in: silo/dist/silo/store.d.ts:3
 
 #### Parameters
 
@@ -82,17 +82,15 @@ Defined in: [artifacts/store.ts:11](https://github.com/juli-os/artifacts/blob/ma
 
 #### Returns
 
-`Promise`\<[`Result`](../type-aliases/Result.md)\<`void`, `Error`\>\>
+`Promise`\<`Result`\<`void`, `Error`\>\>
 
 ***
 
 ### url()
 
-> **url**(`key`, `ttlSec?`): `Promise`\<[`Result`](../type-aliases/Result.md)\<`string`, `Error`\>\>
+> **url**(`key`, `ttlSec?`): `Promise`\<`Result`\<`string`, `Error`\>\>
 
-Defined in: [artifacts/store.ts:16](https://github.com/juli-os/artifacts/blob/main/src/platform/artifacts/store.ts#L16)
-
-生成可访问 URL：disk = 本地 API 路径；S3 = presigned GET。
+Defined in: silo/dist/silo/store.d.ts:7
 
 #### Parameters
 
@@ -106,4 +104,4 @@ Defined in: [artifacts/store.ts:16](https://github.com/juli-os/artifacts/blob/ma
 
 #### Returns
 
-`Promise`\<[`Result`](../type-aliases/Result.md)\<`string`, `Error`\>\>
+`Promise`\<`Result`\<`string`, `Error`\>\>

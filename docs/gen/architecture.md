@@ -3,16 +3,19 @@
 
 # 架构（模块依赖实测）
 
-共 3 个节点、3 条目录级有向边（边上数字 = 实测相对 import 条数；同目录内部依赖不单列）。
+共 3 个节点、2 条目录级有向边（边上数字 = 实测相对 import 条数；同目录内部依赖不单列；@juli-os/* 外部依赖以虚线呈现）。
 
 ```mermaid
 flowchart TD
     n0["facade（index.ts）"]
     n1["platform/artifacts"]
     n2["platform/shared"]
-    n0 -->|2| n1
-    n0 -->|3| n2
-    n1 -->|4| n2
+    n0 -->|1| n1
+    n1 -->|3| n2
+    classDef external stroke-dasharray: 5 5
+    e0["@juli-os/silo"]:::external
+    n0 -.->|1| e0
+    n1 -.->|2| e0
 ```
 
 ## 模块职责
