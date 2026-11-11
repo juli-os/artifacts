@@ -10,6 +10,7 @@ export {
   createArtifactLedger, guessMime, parseEnvelope, isDeliverableRef, sweepCaseInbox,
   type ArtifactLedger, type ArtifactRow, type ArtifactRole, type ViewRole,
   type DeliverableDecl, type SweepEnvelope, type DeliverableRef, type SweepResult,
+  type ArtifactLightRow, type ArtifactViewRow,
 } from './platform/artifacts/ledger.ts';
 // 0.3.0：工具出口（ok/err/toResult/Result/rfc3339/systemClock/randomIds/Clock/
 // IdGen/asRecord/safeParse/JsonRecord/JsonValue）已删——事实源收编回主仓

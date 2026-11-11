@@ -73,6 +73,33 @@ export interface ArtifactLedger {
     workflowId: string; role: ArtifactRole; name: string; bytes: Buffer;
     mime?: string; stepId?: string; meta?: JsonRecord;
   }): Promise<ArtifactRow>;
+
+  // ---- 轻量读侧（2026-11-12 ledger 关门：主仓不再拿 db 句柄直查本表）----
+
+  /** 全量轻量行（id/key/墓碑位）——工件页过滤幽灵条目用。 */
+  listLight(): readonly ArtifactLightRow[];
+  /** 按 id 取分享取件所需最小行（key/墓碑位/属主单）。 */
+  getLight(id: string): ArtifactLightRow | null;
+  /** 按 id 取人视图行（多 name/mime）。 */
+  getView(id: string): ArtifactViewRow | null;
+}
+
+/** 轻量行（listLight/getLight）——工件路由的过滤与属主闸消费。 */
+export interface ArtifactLightRow {
+  readonly id: string;
+  readonly key: string;
+  readonly deletedAt: string | null;
+  readonly workflowId: string;
+}
+
+/** 人视图行（getView）——分享详情页消费。 */
+export interface ArtifactViewRow {
+  readonly id: string;
+  readonly key: string;
+  readonly name: string;
+  readonly mime: string;
+  readonly deletedAt: string | null;
+  readonly workflowId: string;
 }
 
 type Row = Record<string, string | number | bigint | null | Uint8Array>;
@@ -156,6 +183,38 @@ export const createArtifactLedger = (
 
     tombstone(id) {
       db.prepare('UPDATE artifacts SET deleted_at=? WHERE id=? AND deleted_at IS NULL').run(now(), id);
+    },
+
+    // ---- 轻量读侧（2026-11-12 ledger 关门）：SQL 不出包 ----
+
+    listLight() {
+      return (db.prepare('SELECT id, key, deleted_at, workflow_id FROM artifacts').all() as Array<Record<string, string | null>>)
+        .map((r) => ({
+          id: String(r['id'] ?? ''), key: String(r['key'] ?? ''),
+          deletedAt: r['deleted_at'] === null || r['deleted_at'] === undefined ? null : String(r['deleted_at']),
+          workflowId: String(r['workflow_id'] ?? ''),
+        }));
+    },
+
+    getLight(id) {
+      const r = db.prepare('SELECT id, key, deleted_at, workflow_id FROM artifacts WHERE id=?')
+        .get(id) as Record<string, string | null> | undefined;
+      return r ? {
+        id: String(r['id'] ?? ''), key: String(r['key'] ?? ''),
+        deletedAt: r['deleted_at'] === null || r['deleted_at'] === undefined ? null : String(r['deleted_at']),
+        workflowId: String(r['workflow_id'] ?? ''),
+      } : null;
+    },
+
+    getView(id) {
+      const r = db.prepare('SELECT id, key, name, mime, deleted_at, workflow_id FROM artifacts WHERE id=?')
+        .get(id) as Record<string, string | null> | undefined;
+      return r ? {
+        id: String(r['id'] ?? ''), key: String(r['key'] ?? ''),
+        name: String(r['name'] ?? ''), mime: String(r['mime'] ?? ''),
+        deletedAt: r['deleted_at'] === null || r['deleted_at'] === undefined ? null : String(r['deleted_at']),
+        workflowId: String(r['workflow_id'] ?? ''),
+      } : null;
     },
 
     async putAndRegister(a) {
