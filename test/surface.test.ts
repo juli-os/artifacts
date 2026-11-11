@@ -11,10 +11,8 @@ test('facade value-export surface matches the explicit snapshot list', () => {
     'createDiskBackend', 'createS3Backend', 'createDualBackend', 'assertSigV4PresignShape',
     // ledger
     'createArtifactLedger', 'guessMime', 'parseEnvelope', 'isDeliverableRef', 'sweepCaseInbox',
-    // shared（主仓也经本包消费 Result/时钟——见报告 B 跨包备案）
-    'ok', 'err', 'toResult',
-    'rfc3339', 'systemClock', 'randomIds',
-    'asRecord', 'safeParse',
+    // 0.3.0：shared 工具出口已删——事实源收编回主仓 src/platform/shared/
+    // （2026-11-11 架构调整第 1 步）；内部仍用 src/platform/shared/。
   ];
   assert.deepEqual(Object.keys(facade).sort(), [...expected].sort());
 });

@@ -11,6 +11,7 @@ export {
   type ArtifactLedger, type ArtifactRow, type ArtifactRole, type ViewRole,
   type DeliverableDecl, type SweepEnvelope, type DeliverableRef, type SweepResult,
 } from './platform/artifacts/ledger.ts';
-export { ok, err, toResult, type Result } from './platform/shared/result.ts';
-export { rfc3339, systemClock, randomIds, type Clock, type IdGen } from './platform/shared/clock.ts';
-export { asRecord, safeParse, type JsonRecord, type JsonValue } from './platform/shared/json.ts';
+// 0.3.0：工具出口（ok/err/toResult/Result/rfc3339/systemClock/randomIds/Clock/
+// IdGen/asRecord/safeParse/JsonRecord/JsonValue）已删——事实源收编回主仓
+// src/platform/shared/（juli-service-ts 2026-11-11 架构调整第 1 步）。本包
+// 内部继续用 src/platform/shared/，不再对外导出。
