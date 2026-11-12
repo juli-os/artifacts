@@ -4,13 +4,51 @@ strict: true
 theme:
   name: material
   language: zh
+  features:
+    - navigation.top
+    - navigation.path
+    - navigation.footer
+    - navigation.expand
+    - search.suggest
+    - content.code.copy
+  # mkdocs-static-i18n（suffix 模式）：中文页留在站点根，英文页生成到 /en/ 下。
+  # 只有首页（index.en.md）有英文版；其余页面在 /en/ 下按中文原文兜底生成，
+  # 不缺页也不 404（实测：build 后 /en/gen/architecture/ 存在且内容为中文）。
+  alternate:
+    - name: 中文
+      link: /
+      lang: zh
+    - name: English
+      link: /en/
+      lang: en
 markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_div_format
+plugins:
+  # 一旦显式声明 plugins，material 内置的 search 不再默认启用，需显式列出
+  - search
+  # 插件注册名是 i18n（包名是 mkdocs-static-i18n，yaml 键用注册名）。
+  # >=1.2 用 languages 列表声明语言（旧版的 default_language 键已废弃）。
+  # 必须排在 literate-nav 之前，否则 strict 构建报 nav 被后置插件改动
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: zh
+          default: true
+          name: 中文
+          build: true
+        - locale: en
+          name: English
+          build: true
+  # nav 里 API 段指向 api/ 目录，由 literate-nav 读 scripts/gen-docs.mjs 生成的
+  # api/SUMMARY.md 展开，typedoc 深页由此进侧栏
+  - literate-nav:
+      nav_file: SUMMARY.md
 nav:
   - 首页: index.md
   - 架构: gen/architecture.md
-  - API 参考: api/index.md
+  # 不能直接写 api/SUMMARY.md：i18n 插件先跑，会把它改写成普通页引用，侧栏不展开
+  - API 参考: api/
